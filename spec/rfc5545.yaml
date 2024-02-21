@@ -1,0 +1,656 @@
+version: "1"  # version schema used of meta spec
+
+
+spec:  # metadata
+  uuid:
+  vendor: IETF
+  name: RFC5545
+  version: RFC5545  # TODO maybe choose different or remove (may be encoded inside name)
+
+
+components:
+
+  - name: VCALENDAR
+    root: true
+    properties:
+      - name: PRODID
+        required: true
+      - name: VERSION
+        required: true
+      - name: CALSCALE
+      - name: METHOD
+    components:
+      - name: VEVENT
+      - name: VTODO
+      - name: VJOURNAL
+      - name: VFREEBUSY
+      - name: VTIMEZONE
+
+  - template: true
+    name: object
+    properties:
+      # required, also with method  (TODO)
+      - name: DTSTAMP
+        required: true
+        required_for_transaction: true
+      - name: UID
+        required: true
+        required_for_transaction: true
+
+  - template: true
+    name: descriptive object
+    properties:
+      # optional, must once
+      - name: CLASS
+      - name: CREATED
+      - name: DESCRIPTION
+      - name: GEO  # TODO remove from journal
+      - name: LAST-MODIFIED
+      - name: LOCATION  # TODO remove from journal
+      - name: organizer
+      - name: priority  # TODO remove from journal
+      - name: seq
+      - name: status  # TODO differ between event/todo/journal
+      - name: summary
+      - name: url
+      # TODO multiple
+      - name: ATTACH
+      - name: ATTENDEE
+      - name: CATEGORIES
+      - name: COMMENT
+      - name: CONTACT
+      - name: EXDATE
+      - name: RELATED
+      - name: RESOURCES
+
+  - template: true
+    name: durated object
+    properties:
+      # required
+      - name: DTSTART
+        required: true
+      # TODO exclude each other
+      - name: DTEND
+      - name: DURATION
+
+  - template: true
+    name: recurrent object
+    properties:
+      # optional, must once
+      - name: recurid
+      # optional, should once; TODO may multiple
+      - name: RRULE
+
+  - name: VEVENT
+    includes_templates:
+      - object
+      - descriptive object
+      - durated object
+      - recurrent object
+    properties:
+      # optional, must once
+      - name: transp
+      # TODO multiple
+      # TODO shared between event & todo
+      - name: RSTATUS
+      - name: RDATE
+    components:
+      - name: VALARM
+
+  - name: VTODO
+    includes_templates:
+      - object
+      - descriptive object
+      - durated object
+      - recurrent object
+    properties:
+      # optional, must once
+      - completed
+      - PERCENT-COMPLETE
+      - due
+      - duration
+      # TODO shared between event & todo
+      - name: ATTENDEE
+      - name: RSTATUS
+      - name: RDATE
+    components:
+      - name: VALARM
+
+  - name: VJOURNAL
+    includes_templates:
+      - object
+      - descriptive object
+      - recurrent object  # TODO why did the spec allow this?
+    properties:
+      - name: DESCRIPTION
+        multiple: true
+      # TODO shared between event & todo
+      - name: RSTATUS
+      - name: RDATE
+
+  # TODO thefuck, this is used in requests, aagh!
+  - name: VFREEBUSY
+    includes_templates:
+      - object
+    # TODO expand
+
+  - name: VTIMEZONE
+    properties:
+      - tzid
+      - last-mod
+      - tzurl
+    components:
+      - STANDARD
+      - DAYLIGHT
+
+  - template: yes
+    name: timezone properties
+    includes_templates:
+      - recurrent object
+    properties:
+      # required, must once
+      - dtstart
+      - tzoffsetto
+      - tzoffsetfrom
+      # TODO multiple
+      - comment
+      - rdate
+      - tzname
+
+  - name: STANDARD
+    includes_templates:
+      - timezone properties
+
+  - name: DAYLIGHT
+    includes_templates:
+      - timezone properties
+
+  - name: VALARM
+    variants:
+      - on_property: ACTION
+        on_value: AUDIO
+        properties:
+          # optional, once
+          - attach
+      - on_property: ACTION
+        on_value: DISPLAY
+        properties:
+          # required, once
+          - name: DESCRIPTION
+            required: true
+      - on_property: ACTION
+        on_value: EMAIL
+        properties:
+          # required, once
+          - name: DESCRIPTION
+            required: true
+          - name: SUMMARY
+            required: true
+          # required, TODO multiple
+          - name: ATTENDEE
+            required: true
+          # TODO multiple
+          - ATTACH
+    properties:
+      # TODO must occur together
+      - duration
+      - repeat
+
+
+# TODO (?) let properties describe their own behavior on multiple values
+# - breaks on VALARM(ACTION=AUDIO) as ATTACH is only allowed once
+
+properties:
+
+  # TODO those all allow other-param
+
+  - name: CALSCALE
+    type: enum
+    default_omit: GREGORIAN
+    default_unknown: fail
+    values:
+      - name: GREGORIAN
+
+  - name: METHOD
+    type: enum
+
+  - name: PRODID
+    type: TEXT
+
+  - name: VERSION
+    type: enum
+    is_tuple:
+      # either <maxver> OR <minver>;<maxver>
+      min: 1
+      max: 2
+    values:
+      - name: "2.0"
+
+  - name: ATTACH
+    type: URI
+    other_types:
+      - BINARY
+    parameters:
+      - FMTTYPE
+
+  - name: CATEGORIES
+    type: TEXT
+    is_list: true  # is list of comma-separated values
+    if_multiple:
+      mergable: true  # merging into comma separated list is allowed & does not change the meaning
+      keep_parameters: true  # TODO is no here ever required?
+    parameters:
+      - language
+
+  - name: CLASS
+    type: enum
+    default_omit: PUBLIC
+    default_unknown: PRIVATE
+    values:
+      - name: PUBLIC
+      - name: PRIVATE
+      - name: CONFIDENTIAL
+
+  - name: COMMENT
+    type: TEXT
+    parameters:
+      - altrep
+      - language
+
+  - name: DESCRIPTION
+    type: text
+    parameters:
+      - altrep
+      - language
+
+  - name: GEO
+    type: FLOAT
+    is_tuple:
+      min: 2
+      max: 2
+    precision: 6
+    comment: |
+      latitude & longitude values
+
+  - name: LOCATION
+    type: TEXT
+    parameters:
+      - altrep
+      - language
+
+  - name: PERCENT-COMPLETE
+    type: INTEGER
+    min: 0
+    max: 100
+    default_omit: 0
+
+  - name: PRIORITY
+    type: INTEGER
+    min: 0
+    max: 9
+    default_omit: 0
+
+  - name: RESOURCES
+    type: TEXT
+    is_list: true
+    if_multiple:
+      mergable: true
+    parameters:
+      - altrep
+      - language
+
+  - name: STATUS
+    type: enum
+    final: true  # future specification may not overwrite & vendor values are not allowed
+    # TODO possible values differ
+    values:
+      # for event
+      - TENTIATIVE
+      - CONFIRMED
+      - CANCELLED
+      # for todo
+      - NEEDS-ACTION
+      - COMPLETED
+      - IN-PROGRESS
+      - CANCELLED
+      # for journal
+      - DRAFT
+      - FINAL
+      - CANCELLED
+
+  - name: SUMMARY
+    type: TEXT
+    parameters:
+      - altrep
+      - language
+
+  - name: COMPLETED
+    type: DATE-TIME
+    force_utc: true
+
+  - name: DTEND
+    type: DATE-TIME
+    other_types:
+      - DATE
+    # TODO is compare_with required for this meta spec?
+    compare_with:  # constraints type (date-time/date) & local time on both to be equal
+      - name: DTSTART
+        order: ">="  # dtend >= dtstart
+    parameters:
+      - TZID
+
+  - name: DUE
+    type: DATE-TIME
+    other_types:
+      - DATE
+    compare_with:
+      - name: DTSTART
+        order: ">="
+    parameters:
+      - TZID
+
+  - name: DTSTART
+    type: DATE-TIME
+    other_types:
+      - DATE
+
+  - name: DURATION
+    type: DURATION
+    compare_with:  # constraints types, but does not compare them
+      - name: DTSTART
+
+  - name: FREEBUSY
+    type: PERIOD
+    parameters:
+      - FBTYPE
+
+  - name: TRANSP
+    type: enum
+    final: true
+    default_omit: OPAQUE
+    values:
+      - OPAQUE
+      - TRANSPARENT
+
+  - name: TZID
+    type: TEXT
+
+  - name: TZNAME
+    type: TEXT
+    parameters:
+      - language
+
+  - name: TZOFFSETFROM
+    type: UTC-OFFSET
+
+  - name: TZOFFSETTO
+    type: UTC-OFFSET
+
+  - name: TZURL
+    type: URI
+
+  - name: ATTENDEE
+    type: CAL-ADDRESS
+    parameters:
+      - CUTYPE
+      - MEMBER
+      - ROLE
+      - PARTSTAT
+      - RVSP
+      - MEMBER
+      - DELEGATED-TO
+      - DELEGATED-FROM
+      - SEND-BY
+      - CN
+      - DIR
+      - LANGUAGE
+
+  - name: CONTACT
+    type: TEXT
+    parameters:
+      - language
+
+  - name: ORGANIZER
+    type: CAL-ADDRESS
+    parameters:
+      - CN
+      - DIR
+      - SEND-BY
+      - LANGUAGE
+
+  - name: RECURRENCE-ID
+    compare_with:  # allows to infer type’s
+      - name: DTSTART
+    parameters:
+      - TZID
+      - RANGE
+
+  - name: RELATED-TO
+    type: reference  # this value references one with the same value of type uid
+    parameters:
+      - name: RELTYPE
+        default_omit: PARENT
+        default_unknown: PARENT
+        values:
+          - PARENT
+          - CHILD
+          - SIBLING
+
+  - name: URL
+    type: URI
+
+  - name: UID
+    type: uid  # all values with that type need to be unique
+
+  - name: EXDATE
+    type: DATE-TIME
+    other_types:
+      - DATE
+    is_list: true
+    if_multiple:
+      mergable: true
+    parameters:
+      - TZID
+
+  - name: RDATE
+    type: DATE-TIME
+    other_types:
+      - DATE
+      - PERIOD
+    is_list: true
+    if_multiple:
+      mergable: true
+    parameters:
+      - TZID
+
+  - name: RRULE
+    type: RECUR
+
+  - name: ACTION
+    type: enum
+    default_unknown: ignore
+    values:
+      - AUDIO
+      - DISPLAY
+      - EMAIL
+
+  - name: REPEAT
+    type: INTEGER
+    default_omit: 0
+
+  - name: TRIGGER
+    type: DURATION
+    other_types:
+      - DATE-TIME
+    force_utc: true
+    parameters:
+      # TODO not valid for type=date-time
+      - name: RELATED
+        # TODO related vals require different
+        values:
+          - END  # requires DTSTART & DURATION or DTEND
+          - START  # requires DTSTART
+
+  - name: CREATED
+    type: DATE-TIME
+    force_utc: true
+
+  - name: DTSTAMP
+    type: DATE-TIME
+    force_utc: true
+
+  - name: LAST-MODIFIED
+    type: DATE-TIME
+    force_utc: true
+
+  - name: SEQUENCE
+    type: INTEGER
+
+  - name: REQUEST-STATUS
+    type: TEXT
+    # not modelled better because not required
+
+
+parameters:
+
+  - name: ALTREP
+    type: uri
+    force_quoted: true
+
+  - name: CN
+
+  - name: CUTYPE
+    default_omit: INDIVIDUAL
+    default_unknown: UNKNOWN
+    values:
+      - INDIVIDUAL
+      - GROUP
+      - RESOURCE
+      - ROOM
+      - UNKNOWN
+
+  - name: DELEGATED-FROM
+    type: CAL-ADDRESS
+    is_list: true
+    force_quoted: true
+
+  - name: DELEGATED-TO
+    type: CAL-ADDRESS
+    is_list: true
+    force_quoted: true
+
+  - name: DIR
+    force_quoted: true
+
+  - name: ENCODING
+    final: true  # TODO convert final=true to extensible=true on reversed
+    values:
+      - 8BIT
+      - BASE64
+
+  - name: FMTTYPE
+    type: MIME-TYPE
+
+  - name: FBTYPE
+    extensible: true
+    default_omit: BUSY
+    default_unknown: BUSY
+    values:
+      - FREE
+      - BUSY
+      - BUSY-UNAVAILABLE
+      - BUSY-TENTIATIVE
+
+  - name: LANGUAGE
+    type: LANG-TAG
+
+  - name: MEMBER
+    type: CAL-ADDRESS
+    is_list: true
+    force_quoted: true
+
+  # TODO 3 variants again
+  - name: PARTSTAT
+    extensible: true
+    default_omit: NEEDS-ACTION
+    default_unknown: NEEDS-ACTION
+    values:
+      # event
+      - NEEDS-ACTION
+      - ACCEPTED
+      - DECLINED
+      - TENTATIVE
+      - DELEGATED
+      # todo
+      - NEEDS-ACTION
+      - ACCEPTED
+      - DECLINED
+      - TENTATIVE
+      - DELEGATED
+      - COMPLETED
+      - IN-PROCESS
+      # journal
+      - NEEDS-ACTION
+      - ACCEPTED
+      - DECLINED
+
+  - name: RANGE
+    # TODO: extensible: false
+    values:
+      - THISANDFUTURE
+      # TODO: "THISANDPRIOR" was deprecated
+
+  - name: RELATED
+    default_omit: START
+    values:
+      - START
+      - END
+
+  - name: RELTYPE
+    extensible: true
+    default_omit: PARENT
+    default_unknown: PARENT
+    values:
+      - PARENT
+      - CHILD
+      - SIBLING
+
+  - name: ROLE
+    extensible: true
+    default_omit: REQ-PARTICIPANT
+    default_unknown: REQ-PARTICIPANT
+    values:
+      - CHAIR
+      - REQ-PARTICIPANT
+      - OPT-PARTICIPANT
+      - NON-PARTICIPANT
+
+  - name: RVSP
+    type: BOOLEAN
+    default_omit: "FALSE"
+
+  - name: SENT-BY
+    type: CAL-ADDRESS
+    force_quoted: true
+
+  - name: TZID
+    type: TIMEZONE
+
+  # VALUE is a special parameter used for TYPE introspection
+  - name: VALUE
+    extensible: true
+    values:
+      - BINARY
+      - BOOLEAN
+      - CAL-ADDRESS
+      - DATE
+      - DATE-TIME
+      - DURATION
+      - FLOAT
+      - INTEGER
+      - PERIOD
+      - RECUR
+      - TEXT
+      - TIME
+      - URI
+      - UTC-OFFSET
