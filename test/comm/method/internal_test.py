@@ -10,7 +10,7 @@ from unittest.mock import (
     MagicMock,
 )
 
-from enjo_lib.comm.internal import (
+from enjo_lib.comm.method.internal import (
     InternalExchanger,
     InternalTransport,
 )

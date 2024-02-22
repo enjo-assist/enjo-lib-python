@@ -14,7 +14,7 @@ from typing import (
     TypeAlias,
 )
 
-from ..our_types import (
+from ...our_types import (
     JSON,
 )
 

@@ -3,12 +3,12 @@ from __future__ import annotations
 import asyncio
 from functools import partial
 
-from .method import (
+from .interface import (
     MessageHandler,
     TransportMethod,
     TransmissionSuccess,
 )
-from ..our_types import JSON
+from ...our_types import JSON
 
 
 class InternalTransport(TransportMethod):
