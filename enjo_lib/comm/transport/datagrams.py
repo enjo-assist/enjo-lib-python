@@ -99,6 +99,7 @@ class FailureMetadata(GeneralTransportMetadata):
 
     epoch: EpochId
     reason: HumanFriendlyDesc
+    debug_data: JSON
 
 
 # restart
