@@ -90,6 +90,13 @@ class FailureDatagram(GeneralTransportDatagram):
 
 @serializable
 class FailureMetadata(GeneralTransportMetadata):
+    """
+    Issues that a specific service has failed.
+
+    This does not mean that the whole stack might be failed as each service may run on its own.
+    But most certainly, if the controller does issue an failure, it likely is the whole stack.
+    """
+
     epoch: EpochId
     reason: HumanFriendlyDesc
 
