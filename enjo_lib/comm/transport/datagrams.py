@@ -21,7 +21,7 @@ from ...our_types import (
 @serializable
 class GeneralTransportDatagram:
     _version: int = 1
-    timestamp: int
+    timestamp_ns: int
     sender: InstanceId
     message_type: str
     data: JSON | GeneralTransportMetadata | None
