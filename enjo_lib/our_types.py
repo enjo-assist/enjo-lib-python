@@ -7,9 +7,20 @@ from collections.abc import (
 from decimal import (
     Decimal,
 )
+from functools import (
+    partial,
+)
 from typing import (
     TypeAlias,
+    NewType,
     Union,
+)
+from uuid import (
+    UUID,
+)
+
+from attrs import (
+    define,
 )
 
 
@@ -21,3 +32,21 @@ JSON: TypeAlias = Union[
     Decimal,
     bool,
 ]
+
+
+serializable = partial(
+    define,
+    frozen=True,
+    kw_only=True,
+)
+
+
+ReverseDomainArg = NewType("ReverseDomainArg", str)
+"""e.g. `"de.6nw.enjo.controller"`"""
+
+
+InstanceId = NewType("InstanceId", UUID)
+ServiceType = NewType("ServiceType", ReverseDomainArg)
+ServiceClass = NewType("ServiceClass", ReverseDomainArg)
+EpochId = NewType("EpochId", UUID)
+HumanFriendlyDesc = NewType("HumanFriendlyDesc", str)
