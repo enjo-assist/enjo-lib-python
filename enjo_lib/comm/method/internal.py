@@ -8,7 +8,6 @@ from .interface import (
     TransportMethod,
     TransmissionSuccess,
 )
-from ...our_types import JSON
 
 
 class InternalTransport(TransportMethod):
@@ -20,7 +19,7 @@ class InternalTransport(TransportMethod):
     __recv_handler: MessageHandler | None = None
     __send_handler: MessageHandler | None = None
 
-    async def send(self, data: JSON) -> TransmissionSuccess:
+    async def send(self, data: bytes) -> TransmissionSuccess:
         if self.__send_handler is None:
             return TransmissionSuccess.EXCHANGE_UNAVAILABLE
         await self.__send_handler(data)
@@ -29,7 +28,7 @@ class InternalTransport(TransportMethod):
     def on_receive(self, handler: MessageHandler) -> None:
         self.__recv_handler = handler
 
-    async def _submit(self, data: JSON) -> None:
+    async def _submit(self, data: bytes) -> None:
         if self.__recv_handler is None:
             return
         await self.__recv_handler(data)
@@ -42,7 +41,7 @@ class InternalExchanger:
 
     __transports = set[InternalTransport]()
 
-    async def __send_handler(self, sender: InternalTransport, data: JSON) -> None:
+    async def __send_handler(self, sender: InternalTransport, data: bytes) -> None:
         async with asyncio.TaskGroup() as group:
             for receiver in self.__transports:
                 if receiver is sender:

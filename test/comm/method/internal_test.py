@@ -38,12 +38,12 @@ class InternalTransportTwoPeers(IsolatedAsyncioTestCase):
         mock_bob = AsyncCallableMock()
         peer_bob.on_receive(mock_bob)
         # send from Alice to Bob
-        await peer_alice.send("test Alice -> Bob")
+        await peer_alice.send(b"test Alice -> Bob")
         mock_alice.assert_not_called()
-        mock_bob.assert_called_once_with("test Alice -> Bob")
+        mock_bob.assert_called_once_with(b"test Alice -> Bob")
         mock_alice.reset_mock()
         mock_bob.reset_mock()
         # send from Bob to Alice
-        await peer_bob.send("test Bob -> Alice")
-        mock_alice.assert_called_once_with("test Bob -> Alice")
+        await peer_bob.send(b"test Bob -> Alice")
+        mock_alice.assert_called_once_with(b"test Bob -> Alice")
         mock_bob.assert_not_called()

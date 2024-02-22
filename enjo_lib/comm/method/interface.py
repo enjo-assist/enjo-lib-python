@@ -14,10 +14,6 @@ from typing import (
     TypeAlias,
 )
 
-from ...our_types import (
-    JSON,
-)
-
 
 class TransmissionSuccess(Enum):
     UNKNOWN_ERROR = auto()
@@ -25,13 +21,13 @@ class TransmissionSuccess(Enum):
     SUBMITTED_SUCCESSFULLY = auto()
 
 
-MessageHandler: TypeAlias = Callable[[JSON], Awaitable[None]]
+MessageHandler: TypeAlias = Callable[[bytes], Awaitable[None]]
 
 
 class TransportMethod(ABC):
 
     @abstractmethod
-    async def send(self, data: JSON) -> TransmissionSuccess: ...
+    async def send(self, data: bytes) -> TransmissionSuccess: ...
 
     @abstractmethod
     def on_receive(self, handler: MessageHandler) -> None:
