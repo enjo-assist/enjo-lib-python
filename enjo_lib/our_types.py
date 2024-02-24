@@ -7,9 +7,6 @@ from collections.abc import (
 from decimal import (
     Decimal,
 )
-from functools import (
-    partial,
-)
 from typing import (
     TypeAlias,
     NewType,
@@ -17,10 +14,6 @@ from typing import (
 )
 from uuid import (
     UUID,
-)
-
-from attrs import (
-    define,
 )
 
 
@@ -32,13 +25,6 @@ JSON: TypeAlias = Union[
     Decimal,
     bool,
 ]
-
-
-serializable = partial(
-    define,
-    frozen=True,
-    kw_only=True,
-)
 
 
 ReverseDomainArg = NewType("ReverseDomainArg", str)

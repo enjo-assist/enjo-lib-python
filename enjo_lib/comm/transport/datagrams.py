@@ -7,6 +7,10 @@ from typing import (
     Literal,
 )
 
+from attrs import (
+    define,
+)
+
 from ...our_types import (
     EpochId,
     HumanFriendlyDesc,
@@ -14,11 +18,13 @@ from ...our_types import (
     JSON,
     ServiceType,
     ServiceClass,
-    serializable,
 )
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class GeneralTransportDatagram:
     _version: int = 1
     timestamp_ns: int
@@ -27,7 +33,10 @@ class GeneralTransportDatagram:
     data: JSON | GeneralTransportMetadata | None
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class GeneralTransportMetadata:
     pass
 
@@ -35,13 +44,19 @@ class GeneralTransportMetadata:
 # connect
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class ConnectDatagram(GeneralTransportDatagram):
     message_type: Literal["connect"] = "connect"
     data: ConnectMetadata
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class ConnectMetadata(GeneralTransportMetadata):
     epoch: EpochId
     type: ServiceType
@@ -51,13 +66,19 @@ class ConnectMetadata(GeneralTransportMetadata):
 # disconnect
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class DisconnectDatagram(GeneralTransportDatagram):
     message_type: Literal["disconnect"] = "disconnect"
     data: DisconnectMetadata
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class DisconnectMetadata(GeneralTransportMetadata):
     epoch: EpochId
     exceptional: bool
@@ -67,13 +88,19 @@ class DisconnectMetadata(GeneralTransportMetadata):
 # duplicate & replace sender types
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class DuplicateSenderDatagram(GeneralTransportDatagram):
     message_type: Literal["duplicate_sender"] = "duplicate_sender"
     data: ConnectMetadata
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class ReplaceSenderDatagram(GeneralTransportMetadata):
     message_type: Literal["replace_sender"] = "replace_sender"
     data: ConnectMetadata
@@ -82,13 +109,19 @@ class ReplaceSenderDatagram(GeneralTransportMetadata):
 # failure
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class FailureDatagram(GeneralTransportDatagram):
     message_type: Literal["failure"] = "failure"
     data: FailureMetadata
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class FailureMetadata(GeneralTransportMetadata):
     """
     Issues that a specific service has failed.
@@ -105,7 +138,10 @@ class FailureMetadata(GeneralTransportMetadata):
 # restart
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class RestartDatagram(GeneralTransportDatagram):
     """issues a restart of a whole Enjo network"""
 
@@ -116,7 +152,10 @@ class RestartDatagram(GeneralTransportDatagram):
 # transmit
 
 
-@serializable
+@define(
+    frozen=True,
+    kw_only=True,
+)
 class TransmitDatagram(GeneralTransportDatagram):
     message_type: Literal["transmit"] = "transmit"
     data: JSON
