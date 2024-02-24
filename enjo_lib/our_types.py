@@ -4,9 +4,6 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
-from decimal import (
-    Decimal,
-)
 from typing import (
     TypeAlias,
     NewType,
@@ -22,7 +19,7 @@ JSON: TypeAlias = Union[
     Sequence["JSON"],
     str,
     int,
-    Decimal,
+    float,
     bool,
 ]
 
