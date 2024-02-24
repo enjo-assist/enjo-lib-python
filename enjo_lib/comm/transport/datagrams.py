@@ -103,7 +103,7 @@ class DuplicateSenderDatagram(GeneralTransportDatagram):
     frozen=True,
     kw_only=True,
 )
-class ReplaceSenderDatagram(GeneralTransportMetadata):
+class ReplaceSenderDatagram(GeneralTransportDatagram):
     message_type: Literal["replace_sender"] = "replace_sender"
     data: ConnectMetadata
 
