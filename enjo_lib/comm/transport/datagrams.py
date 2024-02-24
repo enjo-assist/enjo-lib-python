@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import (
+    Mapping,
     Sequence,
 )
 from typing import (
     Literal,
+    Type,
 )
 
 from attrs import (
@@ -159,3 +161,14 @@ class RestartDatagram(GeneralTransportDatagram):
 class TransmitDatagram(GeneralTransportDatagram):
     message_type: Literal["transmit"] = "transmit"
     data: JSON
+
+
+MESSAGE_TYPE_MAP: Mapping[str, Type[GeneralTransportDatagram]] = {
+    "connect": ConnectDatagram,
+    "disconnect": DisconnectDatagram,
+    "duplicate_sender": DuplicateSenderDatagram,
+    "replace_sender": ReplaceSenderDatagram,
+    "failure": FailureDatagram,
+    "restart": RestartDatagram,
+    "transmit": TransmitDatagram,
+}
